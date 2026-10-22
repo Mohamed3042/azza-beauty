@@ -1,0 +1,4 @@
+# exploration builds and render scratch output
+motion/concepts/
+motion/**/stills/
+motion/node_modules/
