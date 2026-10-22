@@ -1,0 +1,11 @@
+{
+  "name": "azza-beauty-motion",
+  "private": true,
+  "description": "Frame-accurate HTML motion pieces for Azza Beauty, rendered to MP4 with Playwright + ffmpeg",
+  "scripts": {
+    "render": "node render.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
