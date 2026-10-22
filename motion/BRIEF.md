@@ -1,17 +1,18 @@
 # Motion brief — Azza Beauty product reel
 
 ## Who and where
-Azza Khalil sells My Way Egypt products (perfume, skin/hair care, home products) to women in Egypt,
-mostly through WhatsApp Status, Facebook and Instagram Reels. The reel promotes the current offers
-and drives people to message her on WhatsApp.
+Azza Khalil sells My Way Egypt products (perfume, body sprays and gels, skin/hair care, home products,
+My Chef) to women in Egypt, mostly through WhatsApp Status, Facebook and Instagram Reels, with a WhatsApp
+Business catalog. The reel shows off her product range and drives people to message her on WhatsApp.
+**No prices on screen** (owner's decision) — see `FACTS.md`; price questions go to WhatsApp.
 
 ## Format
 - 1080 × 1920 (9:16), 30 fps, 20–30 s, silent (music gets added in-app).
 - Egyptian Arabic, RTL, addressed to a woman (`اطلبي`, `كلميني`), same voice as the site.
-- Opening hook inside the first 1.5 s. Closing CTA card held ≥ 3 s.
-- Readability: a headline stays fully readable ≥ 2 s; a price ≥ 2.5 s; nothing important flashes.
-  Minimum on-screen text size 44 px; prices ≥ 120 px.
-- **Safe zone** (platform UI covers the rest): all text and prices inside x 80–1000, y 260–1480.
+- Opening hook inside the first 1.5 s. Closing CTA card (`اسألي عن السعر على واتساب` + WhatsApp icon + Azza Beauty) held ≥ 3 s.
+- Readability: a headline stays fully readable ≥ 2 s; a product name ≥ 1.8 s; nothing important flashes.
+  Minimum on-screen text size 44 px.
+- **Safe zone** (platform UI covers the rest): all text inside x 80–1000, y 260–1480.
   The bottom 420 px and top 240 px may hold only background/decoration.
 
 ## Content rules
@@ -19,7 +20,7 @@ Read `FACTS.md`. Every on-screen word, number and product name must come from it
 
 ## Technical contract (so `render.cjs` can render it frame-accurately)
 - One self-contained `index.html` per piece; reference only local files (`../../fonts/…`, `../../cutouts/…`,
-  `../../../assets/…` from `motion/concepts/<id>/`). No CDNs, no network.
+  `../../photos/…`, `../../../assets/…` from `motion/concepts/<id>/`). No CDNs, no network.
 - `html, body` exactly 1080 × 1920, `overflow:hidden`, explicit background.
 - Set `window.DURATION = <seconds>` in a script.
 - Animate with CSS `@keyframes` (+ `animation-delay` for timing) or the Web Animations API. The renderer pauses
