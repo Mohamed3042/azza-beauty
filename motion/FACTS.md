@@ -33,6 +33,9 @@ price-free cutouts and photos listed below instead.
    `Cleopatra` hair styling cream (`كليوباترا للتطويل`).
    Flyer caption for Vera, usable as a product description: `جل الصبار فيرا لجميع انواع البشره ينظف و يرطب و ينقي البشرة`.
    Name of the men's set on the published site: `الطقم الرجالي: بوم وإسنشيال وساعة`.
+   Men's: ELITE and Cavalier appear under the flyer header `عرض برفانات رجالي`; BOOM is in the men's set — so these three may be
+   labelled `برفانات رجالي`. Tender's gender is **not** stated anywhere: show it under the catalog umbrella `عطور رجالي وحريمي`
+   only, never under `برفانات حريمي`, and don't put a scent description directly under its name.
 3. **The published site** `index.html` — brand and approved copy, below.
 
 mywayeg.net itself did not resolve from the build machine (DNS failure), so nothing was taken from it directly.
@@ -47,7 +50,9 @@ mywayeg.net itself did not resolve from the build machine (DNS failure), so noth
   `برفانات وعناية ومنتجات للبيت من ماي واي.` · `ابعتيلي اسم المنتج أو صورته على واتساب`
 - New lines approved for the video: `اسألي عن السعر على واتساب` · `شوفي الكتالوج على واتساب` (she has a WhatsApp catalog).
   Short connective phrases that make no factual claim are fine (`وكمان…`, `تشكيلة لكل البيت`, `اختاري اللي يناسبك`).
-- Disclaimer (keep its meaning if the company name is shown prominently): `موقع مستقل لعضوة في ماي واي مصر، وليس الموقع الرسمي للشركة`
+- Disclaimer from the site footer: `موقع مستقل لعضوة في ماي واي مصر، وليس الموقع الرسمي للشركة`. The video's end card carries
+  the same meaning adapted to an account: `حساب مستقل لعضوة في ماي واي مصر، وليس الحساب الرسمي للشركة` (small, ≥ 44 px, muted).
+  Keep the company name low-key elsewhere: no `من شركة ماي واي مصر` line.
 - WhatsApp number: **unknown**. Never show a number. CTA = WhatsApp icon + text only.
 - Website URL: not verified live. Do not show a URL.
 
@@ -57,12 +62,16 @@ mywayeg.net itself did not resolve from the build machine (DNS failure), so noth
 - Fonts (vendored in `motion/fonts/`, all SIL OFL): El Messiri (display), Tajawal (body, 400–900), Lalezar (bold display)
 
 ## Images you may use (all price-free)
-- **Product cutouts** (`motion/cutouts/`, transparent PNG cut from the flyers; small, max ~420 px tall, so do not scale past ~2.2×):
-  `tender.png` (Tender) · `october-pair.png` (Tender in front of Secret Garden) · `elite.png` · `cavalier.png` ·
-  `men312-pair.png` (Elite + Cavalier) · `boom.png` (dark backgrounds only — faint halo) · `boom-gel.png` ·
-  `essential-box.png` (the watch's edge shows on its right)
+- **Product cutouts** (`motion/cutouts/`, transparent PNG cut from the flyers; small, max ~420 px tall, so do not scale past ~2.0×):
+  `tender.png` (Tender) · `elite.png` · `cavalier.png` · `men312-pair.png` (Elite + Cavalier) · `boom.png` (edge-cleaned) ·
+  `boom-gel.png` · `essential-box.png` (the watch's edge shows on its right) ·
+  `secret-garden.png` (whole bottle; its lower-left quarter was hidden behind Tender in the flyer and is reconstructed — keep it ≤ 1.3×
+  or partly overlapped by a foreground element) · `secret-garden-top.png` (cap to brand label only, fades out at the bottom — clean;
+  made for a bottle rising out of a plinth/box) ·
+  `october-pair.png` (Tender in front of Secret Garden — **never** use it under home-product copy; it implies Tender is a home product)
 - **Product photos** (`motion/photos/`):
-  `vera-cleopatra.jpg` (848×752, real phone photo of the Vera aloe gel and the Cleopatra jar on a beige wall — caption removed) ·
+  `vera-cleopatra.jpg` (848×752, real phone photo of the Vera aloe gel and the Cleopatra jar on a beige wall — price caption
+  removed, batch/date stamps on both labels removed) ·
   `menset-clean.png` (1002×340, the men's set — BOOM perfume, BOOM cream gel, Essential spray, Essential tube, Essential box,
   watch — under a gold `MY WAY` heading, edges fade to transparent; made for dark scenes)
 - **Mood photos** (`assets/hero.jpg`, `cat-women.jpg`, `cat-men.jpg`, `cat-care.jpg`, `cat-home.jpg`, `work.jpg`): generic,
