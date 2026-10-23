@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Azza Beauty Reel</title>
+<!--
+  FINAL 9:16 reel for Azza Beauty — kinetic base, luxe finish. 1080x1920, 27.0 s, silent.
+  Timeline (s)  — every scene is revealed by a gold-edged wipe (0.56 s) starting at its t0.
+   S1 0.00–2.60  Hook: أجمل / تشكيلة + BOOM · Tender · Cavalier lineup
+   S2 2.60–5.40  عطور رجالي وحريمي › برفانات › Tender hero + "برفان تندر | Tender"
+   S3 5.40–8.60  برفانات رجالي › BOOM · Cavalier · ELITE on a lit pedestal
+   S4 8.60–11.80 الطقم الرجالي / بوم وإسنشيال وساعة + menset photo + gift line
+   S5 11.80–14.60 منتجات البيت › سيكرت جاردن / نسيم الحدائق › Secret Garden rising from a plinth
+   S6 14.60–17.80 عناية بالبشرة والشعر › Vera + Cleopatra polaroid
+   S7 17.80–21.60 وكمان… list (sprays, Maska, shampoo sets, My Chef)
+   S8 21.60–27.00 End card (settled by ~23.0 s, held ~4 s)
+  Technical: CSS keyframes only (fill-mode both). Gold dust is drawn by window.seek(t) and the static film-grain
+  tile is generated once, both from a seeded PRNG built at load — no timers, no rAF, no Date.now/Math.random.
+-->
+<style>
+@font-face{font-family:"Lalezar";src:url(../fonts/Lalezar-Regular.ttf) format("truetype");font-display:block}
+@font-face{font-family:"Tajawal";font-weight:700;src:url(../fonts/Tajawal-Bold.ttf) format("truetype");font-display:block}
+@font-face{font-family:"Tajawal";font-weight:800;src:url(../fonts/Tajawal-ExtraBold.ttf) format("truetype");font-display:block}
+@font-face{font-family:"Tajawal";font-weight:900;src:url(../fonts/Tajawal-Black.ttf) format("truetype");font-display:block}
+@font-face{font-family:"El Messiri";font-weight:400 700;src:url(../fonts/ElMessiri-Variable.ttf) format("truetype");font-display:block}
+
+:root{
+  --plum:#5c0f3a; --plum-2:#7a1048; --pink:#c2185b; --pink-soft:#f7dbe6;
+  --gold:#c9a45c; --gold-2:#e6cc8f; --cream:#fbf6ef; --cream-2:#f4ebdf;
+  --ink:#2b1622; --muted:#6e5563; --wa:#25d366;
+  --snap:cubic-bezier(.77,0,.18,1);
+  --out:cubic-bezier(.16,1,.3,1);
+  --io:cubic-bezier(.65,0,.35,1);
+  --foil:linear-gradient(180deg,#fff8de 0%,#fbe3a0 18%,#eac276 34%,#c8964a 47%,#96652a 51%,#f6dd9c 54%,#e7c174 66%,#c09048 82%,#7a4f1c 100%);
+  --band:linear-gradient(100deg,rgba(255,250,232,0) 40%,rgba(255,252,240,.95) 50%,rgba(255,250,232,0) 60%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#2a0619}
+body{position:relative;font-family:"Tajawal",sans-serif;color:var(--cream);-webkit-font-smoothing:antialiased}
+
+/* ---------- timing system ----------
+   each scene sets --t0 (start) and --t1 (start of the next scene); every animated child
+   uses class .a + a motion class, and --d = offset from --t0. */
+.a{animation-duration:var(--dur,.6s);animation-fill-mode:both;animation-iteration-count:1;
+   animation-delay:calc(var(--t0) + var(--d,0s));animation-timing-function:var(--ease,var(--out))}
+
+.scene{position:absolute;inset:0;overflow:hidden;animation:var(--wipe,none) .56s var(--snap) var(--t0) both}
+.bg{position:absolute;inset:0}
+.content{position:absolute;inset:0;transform-origin:50% 46%;animation:pushOut .56s var(--snap) var(--t1) both}
+@keyframes pushOut{from{transform:none;filter:brightness(1)}to{transform:scale(.93);filter:brightness(.62)}}
+
+/* ---------- wipes (clip edge is a straight line or circle; a gold light edge rides it) ---------- */
+@keyframes wDiagR{from{clip-path:polygon(1480px 0,2300px 0,2300px 1920px,1080px 1920px)}to{clip-path:polygon(-60px 0,2300px 0,2300px 1920px,-460px 1920px)}}
+@keyframes wDiagL{from{clip-path:polygon(-400px 0,-1300px 0,-1300px 1920px,0px 1920px)}to{clip-path:polygon(1140px 0,-1300px 0,-1300px 1920px,1540px 1920px)}}
+@keyframes wUp{from{clip-path:polygon(0 2080px,1080px 1920px,1080px 2400px,0 2400px)}to{clip-path:polygon(0 0,1080px -160px,1080px 2400px,0 2400px)}}
+@keyframes wDown{from{clip-path:polygon(0 -400px,1080px -400px,1080px 0,0 -160px)}to{clip-path:polygon(0 -400px,1080px -400px,1080px 2080px,0 1920px)}}
+@keyframes wIris{from{clip-path:circle(0px at var(--cx) var(--cy))}to{clip-path:circle(1500px at var(--cx) var(--cy))}}
+
+.edge{position:absolute;pointer-events:none;z-index:40;animation-duration:.56s;animation-fill-mode:both;animation-delay:var(--t);animation-timing-function:var(--snap)}
+.edge.v{left:1220px;top:-240px;width:120px;height:2400px;
+  background:linear-gradient(90deg,rgba(201,164,92,0) 0%,rgba(230,204,143,.30) 28%,rgba(255,236,190,.85) 44%,#fff8e2 50%,rgba(255,236,190,.85) 56%,rgba(230,204,143,.30) 72%,rgba(201,164,92,0) 100%)}
+.edge.h{left:-160px;top:1945px;width:1400px;height:110px;
+  background:linear-gradient(180deg,rgba(201,164,92,0) 0%,rgba(230,204,143,.30) 28%,rgba(255,236,190,.85) 44%,#fff8e2 50%,rgba(255,236,190,.85) 56%,rgba(230,204,143,.30) 72%,rgba(201,164,92,0) 100%)}
+.edge.dR{animation-name:eDiagR}
+@keyframes eDiagR{0%{transform:translateX(0) rotate(11.77deg);opacity:0}6%{opacity:1}94%{opacity:1}100%{transform:translateX(-1540px) rotate(11.77deg);opacity:0}}
+.edge.dL{left:-260px;animation-name:eDiagL}
+@keyframes eDiagL{0%{transform:translateX(0) rotate(-11.77deg);opacity:0}6%{opacity:1}94%{opacity:1}100%{transform:translateX(1540px) rotate(-11.77deg);opacity:0}}
+.edge.up{animation-name:eUp}
+@keyframes eUp{0%{transform:translateY(0) rotate(-8.43deg);opacity:0}6%{opacity:1}94%{opacity:1}100%{transform:translateY(-2080px) rotate(-8.43deg);opacity:0}}
+.edge.dn{top:-135px;animation-name:eDn}
+@keyframes eDn{0%{transform:translateY(0) rotate(8.43deg);opacity:0}6%{opacity:1}94%{opacity:1}100%{transform:translateY(2080px) rotate(8.43deg);opacity:0}}
+.edge.ring{left:var(--cx);top:var(--cy);width:0;height:0;border-radius:50%;transform:translate(-50%,-50%);animation-name:eRing;
+  box-shadow:0 0 0 5px rgba(255,244,214,.95),0 0 0 14px rgba(230,204,143,.45),0 0 60px 26px rgba(230,204,143,.45),inset 0 0 50px 14px rgba(255,236,190,.45)}
+@keyframes eRing{0%{width:0;height:0;opacity:0}6%{opacity:1}92%{opacity:1}100%{width:3000px;height:3000px;opacity:0}}
+
+/* ---------- motion vocabulary ---------- */
+.settle{animation-name:settle;--dur:1.1s;--ease:cubic-bezier(.2,.8,.2,1)}
+@keyframes settle{from{transform:scale(1.06);filter:drop-shadow(0 0 22px rgba(255,222,160,.75)) drop-shadow(0 2px 0 rgba(110,70,20,0))}
+  to{transform:none;filter:drop-shadow(0 12px 22px rgba(60,0,30,.45)) drop-shadow(0 2px 0 rgba(110,70,20,.0))}}
+.slam{animation-name:slam;--dur:.6s;--ease:cubic-bezier(.2,.75,.25,1)}
+@keyframes slam{0%{transform:scale(1.75);opacity:0;filter:blur(6px)}40%{transform:scale(.95);opacity:1;filter:blur(0)}
+  70%{transform:scale(1.025)}100%{transform:none;opacity:1;filter:blur(0)}}
+.rise{animation-name:rise;--dur:.62s;--ease:cubic-bezier(.2,1.2,.35,1)}
+@keyframes rise{from{transform:translateY(125%)}to{transform:none}}
+.mask{clip-path:inset(-50% -40% -16% -40%)}
+.fromR{animation-name:fromR;--dur:.62s;--ease:cubic-bezier(.2,1.12,.3,1)}
+@keyframes fromR{from{transform:translateX(1000px) skewX(-14deg);opacity:0}25%{opacity:1}72%{transform:translateX(-14px) skewX(3deg)}to{transform:none;opacity:1}}
+.fromL{animation-name:fromL;--dur:.62s;--ease:cubic-bezier(.2,1.12,.3,1)}
+@keyframes fromL{from{transform:translateX(-1000px) skewX(14deg);opacity:0}25%{opacity:1}72%{transform:translateX(14px) skewX(-3deg)}to{transform:none;opacity:1}}
+.fade{animation-name:fade;--dur:.45s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.fadeUp{animation-name:fadeUp;--dur:.6s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+.pill{animation-name:pill;--dur:.5s;--ease:cubic-bezier(.3,1.3,.4,1);transform-origin:100% 50%}
+@keyframes pill{from{transform:scaleX(.08);opacity:0}30%{opacity:1}to{transform:none;opacity:1}}
+.pillC{animation-name:pillC;--dur:.56s;--ease:cubic-bezier(.3,1.45,.4,1)}
+@keyframes pillC{from{transform:scale(.25);opacity:0}35%{opacity:1}to{transform:none;opacity:1}}
+.pop{animation-name:pop;--dur:.85s;--ease:linear;transform-origin:50% 100%}
+@keyframes pop{
+  0%{transform:translateY(140px) scale(.3) rotate(var(--r0,-14deg));opacity:0;animation-timing-function:cubic-bezier(.2,.9,.3,1)}
+  12%{opacity:1}
+  48%{transform:translateY(-18px) scale(1.05) rotate(calc(var(--r0,-14deg) * -.22));animation-timing-function:cubic-bezier(.4,0,.4,1)}
+  74%{transform:translateY(5px) scale(.985) rotate(calc(var(--r0,-14deg) * .06));animation-timing-function:cubic-bezier(.4,0,.4,1)}
+  100%{transform:none;opacity:1}}
+.riseUp{animation-name:riseUp;--dur:1.0s;--ease:cubic-bezier(.2,1.05,.3,1)}
+@keyframes riseUp{from{transform:translateY(var(--ry,390px))}to{transform:none}}
+.grow{animation-name:grow;--dur:.8s;--ease:cubic-bezier(.3,1.3,.4,1)}
+@keyframes grow{from{transform:scale(0);opacity:0}to{transform:none;opacity:1}}
+.marker{animation-name:marker;--dur:.5s;--ease:var(--snap);transform-origin:100% 50%}
+@keyframes marker{from{transform:scaleX(0)}to{transform:none}}
+.revealR{animation-name:revealR;--dur:.5s;--ease:var(--snap)}
+@keyframes revealR{from{clip-path:inset(-30px -30px -30px 100%)}to{clip-path:inset(-30px -30px -30px -30px)}}
+.markerC{animation-name:markerC;--dur:.7s;--ease:var(--out);transform-origin:50% 50%}
+@keyframes markerC{from{transform:scaleX(0);opacity:0}to{transform:none;opacity:1}}
+.sheen{animation-name:sheen;--dur:1.25s;--ease:var(--io)}
+@keyframes sheen{from{background-position:0% 0,0 0}to{background-position:100% 0,0 0}}
+.glass{animation-name:glass;--dur:1.15s;--ease:var(--io)}
+@keyframes glass{from{-webkit-mask-position:0% 0;mask-position:0% 0}to{-webkit-mask-position:100% 0;mask-position:100% 0}}
+.sweep{animation-name:sweep;--dur:1.2s;--ease:var(--io)}
+@keyframes sweep{from{transform:translateX(-900px) skewX(-18deg)}to{transform:translateX(1300px) skewX(-18deg)}}
+.photoIn{animation-name:photoIn;--dur:.85s;--ease:cubic-bezier(.2,1.15,.35,1)}
+@keyframes photoIn{from{transform:translateY(560px) rotate(-12deg) scale(.82);opacity:0}22%{opacity:1}to{transform:rotate(-2.5deg);opacity:1}}
+.cardIn{animation-name:cardIn;--dur:.8s;--ease:cubic-bezier(.2,1.1,.35,1)}
+@keyframes cardIn{from{transform:translateY(120px) scale(.9);opacity:0}30%{opacity:1}to{transform:none;opacity:1}}
+.kb{animation-name:kb;--dur:3.2s;--ease:linear}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.035)}}
+.drift{animation-name:drift;--dur:6s;--ease:linear}
+@keyframes drift{from{transform:translate(0,0)}to{transform:translate(var(--dx,60px),var(--dy,-40px))}}
+.twinkle{animation-name:twinkle;--dur:1.1s;--ease:var(--out)}
+@keyframes twinkle{0%{transform:scale(0) rotate(-60deg);opacity:0}30%{transform:scale(1.2) rotate(0);opacity:1}62%{transform:scale(.8) rotate(12deg);opacity:.85}100%{transform:scale(1) rotate(20deg);opacity:1}}
+.beamIn{animation-name:beamIn;--dur:1.2s}
+@keyframes beamIn{from{opacity:0;transform:scaleX(.5)}to{opacity:1;transform:none}}
+.glow{animation-name:glow;--dur:1.6s;--ease:ease-in-out;animation-iteration-count:3;animation-direction:alternate}
+@keyframes glow{from{opacity:.45;transform:scale(.97)}to{opacity:.85;transform:scale(1.025)}}
+.breathe{animation-name:breathe;--dur:1.6s;--ease:ease-in-out;animation-iteration-count:3;animation-direction:alternate}
+@keyframes breathe{from{transform:none}to{transform:scale(1.02)}}
+.pillSheen{animation-name:pillSheen;--dur:1.1s;--ease:var(--io)}
+@keyframes pillSheen{from{background-position:0% 0}to{background-position:100% 0}}
+
+/* ---------- shared pieces ---------- */
+.abs{position:absolute}
+.row{position:absolute;left:0;right:0;display:flex;justify-content:center}
+.L{font-family:"Lalezar",sans-serif;font-weight:400;line-height:1.25;white-space:nowrap}
+.T{font-family:"Tajawal",sans-serif;white-space:nowrap;line-height:1.3}
+.latin{direction:ltr;unicode-bidi:isolate;font-family:"Tajawal",sans-serif;font-weight:800;letter-spacing:.1em;white-space:nowrap}
+.foil{background-image:var(--band),var(--foil);background-size:300% 100%,100% 100%;background-repeat:no-repeat;background-position:0% 0,0 0;
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;padding:0 .14em}
+.foilBox{background-image:var(--band),linear-gradient(180deg,#fff1c6 0%,#ebcd86 35%,#c99f53 70%,#a87b36 100%);background-size:300% 100%,100% 100%;background-repeat:no-repeat;background-position:0% 0,0 0}
+.lift{filter:drop-shadow(0 2px 0 rgba(110,70,20,.85)) drop-shadow(0 12px 22px rgba(50,0,25,.5))}
+.liftL{filter:drop-shadow(0 8px 18px rgba(120,60,20,.28))}
+.kick{font:700 50px/1 "Tajawal";padding:22px 42px 18px;border-radius:999px;white-space:nowrap;
+  box-shadow:inset 0 0 0 2px rgba(230,204,143,.85),inset 0 3px 0 rgba(255,255,255,.16),0 16px 30px -14px rgba(40,0,20,.6)}
+.k-plum{background:linear-gradient(180deg,#8a1652 0%,#5c0f3a 60%,#430a2a 100%);color:var(--cream)}
+.k-pink{background:linear-gradient(180deg,#e0397a 0%,#c2185b 55%,#9c0f48 100%);color:#fff}
+.k-gold{background:linear-gradient(180deg,#f6e4b4 0%,#e6cc8f 45%,#c9a45c 100%);color:var(--plum);box-shadow:inset 0 0 0 2px rgba(255,248,225,.8),inset 0 -3px 0 rgba(120,80,30,.25),0 16px 30px -14px rgba(40,0,20,.6)}
+.sparkle{position:absolute;width:var(--s,56px);height:var(--s,56px);margin:calc(var(--s,56px) / -2) 0 0 calc(var(--s,56px) / -2);color:#fff3cf;filter:drop-shadow(0 0 10px rgba(255,220,150,.95))}
+.sparkle svg{width:100%;height:100%;display:block}
+
+/* product cutout (built by JS from data-*) */
+.prod{position:absolute}
+.prod .shd{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(20,0,10,.62),rgba(20,0,10,.25) 55%,rgba(20,0,10,0))}
+.prod .halo{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(255,236,190,.34),rgba(255,214,150,.10) 55%,rgba(255,214,150,0))}
+.prod .rf{position:absolute;left:0;width:100%;overflow:hidden;
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.25) 20%,rgba(0,0,0,0) 42%);mask-image:linear-gradient(180deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.25) 20%,rgba(0,0,0,0) 42%)}
+.prod .rf img{display:block;width:100%;height:100%;transform:scaleY(-1);opacity:var(--ro,.26);filter:blur(1.5px)}
+.prod .bd{position:absolute;inset:0}
+.prod .bd img{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.prod .bd img.main{filter:drop-shadow(0 18px 18px rgba(20,0,10,.35))}
+.prod .bd img.sh{filter:brightness(2.1) saturate(.5);opacity:.75;mix-blend-mode:screen;
+  -webkit-mask-image:linear-gradient(105deg,transparent 44.5%,#000 50%,transparent 55.5%);mask-image:linear-gradient(105deg,transparent 44.5%,#000 50%,transparent 55.5%);
+  -webkit-mask-size:320% 100%;mask-size:320% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:0% 0;mask-position:0% 0}
+.clipR img{clip-path:inset(0 3.3% 0 0)}
+.sgtop img{clip-path:inset(0 0 0 4.5%)}
+.prod.clipR .bd img.main{filter:url(#soft) drop-shadow(0 18px 18px rgba(20,0,10,.35))}
+.prod.clipR .bd img.sh{filter:url(#soft) brightness(2.1) saturate(.5)}
+.prod.clipR .rf img{filter:url(#soft) blur(1.5px)}
+.prod.tight .bd img.main{filter:url(#tight) drop-shadow(0 18px 18px rgba(20,0,10,.35))}
+.prod.tight .bd img.sh{filter:url(#tight) brightness(1.9) saturate(.5)}
+.prod.tight .rf img{filter:url(#tight) blur(1.5px)}
+
+/* overlays */
+#dust{position:absolute;left:0;top:0;width:1080px;height:1920px;z-index:30;pointer-events:none}
+#grain{position:absolute;inset:0;z-index:31;pointer-events:none;mix-blend-mode:overlay;opacity:.14;background-size:256px 256px}
+#vig{position:absolute;inset:0;z-index:32;pointer-events:none;
+  background:radial-gradient(130% 85% at 50% 46%,rgba(0,0,0,0) 58%,rgba(14,0,8,.42) 100%)}
+#guides{position:absolute;inset:0;z-index:99;pointer-events:none;display:none}
+#guides i{position:absolute;left:80px;top:260px;width:920px;height:1220px;outline:2px dashed #0ff}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="soft" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="1.6" intercept="-0.25"/></feComponentTransfer></filter>
+  <filter id="tight" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="2.5" intercept="-0.75"/></feComponentTransfer></filter>
+  <symbol id="star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0C12.7 7.9 16.1 11.3 24 12 16.1 12.7 12.7 16.1 12 24 11.3 16.1 7.9 12.7 0 12 7.9 11.3 11.3 7.9 12 0Z"/></symbol>
+  <symbol id="heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.3 10.6 20C5.4 15.4 2 12.3 2 8.5 2 5.4 4.4 3 7.5 3c1.7 0 3.4.8 4.5 2.1C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.4 22 8.5c0 3.8-3.4 6.9-8.6 11.5L12 21.3z"/></symbol>
+  <symbol id="wa" viewBox="0 0 24 24"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.79-1.47-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 21.5h-.01a9.4 9.4 0 0 1-4.8-1.31l-.34-.2-3.57.94.95-3.48-.22-.36a9.43 9.43 0 0 1-1.45-5.03C2.61 6.86 6.84 2.63 12.06 2.63c2.52 0 4.9.99 6.68 2.77a9.37 9.37 0 0 1 2.76 6.68c0 5.21-4.24 9.43-9.45 9.43zM20.08 4.02A11.27 11.27 0 0 0 12.05.7C5.8.7.7 5.79.7 12.05c0 2 .52 3.95 1.52 5.67L.6 23.3l5.72-1.5a11.33 11.33 0 0 0 5.73 1.46h.01c6.25 0 11.35-5.09 11.35-11.35 0-3.03-1.18-5.88-3.33-8.02z"/></symbol>
+</svg>
+
+<!-- ================= S1 HOOK 0.00 – 2.60 ================= -->
+<section class="scene" id="s1" data-t0="0" data-t1="2.6" style="--t0:0s;--t1:2.6s">
+  <div class="bg" style="background:
+    radial-gradient(60% 26% at 50% 28%,rgba(255,176,210,.55) 0%,rgba(255,176,210,0) 72%),
+    radial-gradient(70% 22% at 50% 76%,rgba(255,150,190,.30) 0%,rgba(255,150,190,0) 70%),
+    radial-gradient(110% 62% at 50% 38%,#e23a7c 0%,#c2185b 32%,#9a1150 56%,#6a0d3f 78%,#3c0724 100%)"></div>
+  <div class="abs a drift" style="--d:0s;--dur:2.8s;--dx:-90px;--dy:50px;left:-220px;top:80px;width:760px;height:760px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,215,160,.28),rgba(255,215,160,0))"></div>
+  <div class="content">
+    <!-- light sweep across the frame (replaces flat slabs) -->
+    <div class="abs a sweep" style="--d:.15s;--dur:1.4s;top:-200px;left:0;width:260px;height:2400px;background:linear-gradient(90deg,rgba(255,240,215,0),rgba(255,240,215,.20),rgba(255,240,215,0));filter:blur(8px)"></div>
+
+    <!-- dark stage pool behind the lineup + floor -->
+    <div class="abs" style="left:60px;right:60px;top:960px;height:620px;border-radius:50%;background:radial-gradient(closest-side,rgba(58,4,32,.55),rgba(58,4,32,.25) 60%,rgba(58,4,32,0))"></div>
+    <div class="abs" style="left:120px;right:120px;top:1352px;height:150px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,215,170,.30),rgba(255,160,200,.08) 60%,rgba(0,0,0,0))"></div>
+    <div class="abs a markerC" style="--d:-.2s;left:110px;right:110px;top:1426px;height:2px;background:linear-gradient(90deg,rgba(230,204,143,0),rgba(255,236,190,.9) 50%,rgba(230,204,143,0))"></div>
+
+    <div class="prod a pop tight" data-src="../cutouts/boom.png" data-w="170" data-h="330" data-scale="1.15" data-cx="330" data-floor="1428" style="--d:-.32s;--r0:-14deg;--sd:.35s;z-index:1"></div>
+    <div class="prod a pop" data-src="../cutouts/cavalier.png" data-w="117" data-h="297" data-scale="1.28" data-cx="768" data-floor="1428" style="--d:-.26s;--r0:14deg;--sd:.5s;z-index:1"></div>
+    <div class="prod a pop clipR" data-src="../cutouts/tender.png" data-w="240" data-h="267" data-scale="1.5" data-cx="540" data-floor="1428" data-halo="1" style="--d:-.38s;--r0:-10deg;--sd:.2s;z-index:2"></div>
+
+    <div class="row" style="top:270px"><div class="a settle" style="--d:0s"><div class="L foil a sheen" style="--d:.45s;font-size:300px">أجمل</div></div></div>
+    <div class="row" style="top:560px"><div class="a settle" style="--d:0s"><div class="L" style="font-size:250px;color:var(--cream)">تشكيلة</div></div></div>
+    <div class="row" style="top:862px"><div class="a settle" style="--d:0s"><div class="T" style="font-weight:800;font-size:58px;color:#fff3e6">برفانات وعناية ومنتجات للبيت</div></div></div>
+
+    <div class="sparkle a twinkle" style="--d:.2s;--s:64px;left:905px;top:330px"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:.35s;--s:42px;left:168px;top:700px"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:.55s;--s:50px;left:880px;top:1060px"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:.7s;--s:34px;left:200px;top:1130px"><svg><use href="#star"/></svg></div>
+  </div>
+</section>
+
+<!-- ================= S2 TENDER 2.60 – 5.40 ================= -->
+<section class="scene" id="s2" data-t0="2.6" data-t1="5.4" style="--t0:2.6s;--t1:5.4s;--wipe:wDiagR">
+  <div class="bg" style="background:
+    radial-gradient(46% 26% at 50% 50%,rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 70%),
+    radial-gradient(90% 40% at 50% 0%,rgba(255,232,242,.9) 0%,rgba(255,232,242,0) 70%),
+    radial-gradient(100% 60% at 50% 52%,#fff7fa 0%,#fbe3ec 36%,#f2c6d6 64%,#dc93b0 86%,#b45a82 100%)"></div>
+  <div class="content">
+    <!-- spotlight cone -->
+    <div class="abs a beamIn" style="--d:.1s;left:90px;top:-60px;width:900px;height:1360px;background:radial-gradient(50% 60% at 50% 70%,rgba(255,255,255,.55),rgba(255,255,255,0) 100%);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);filter:blur(40px)"></div>
+    <div class="abs a grow" style="--d:.06s;--dur:.9s;left:230px;top:640px;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#fbe7ef 0%,#f2c9d9 52%,#e4a7bf 100%);box-shadow:0 30px 60px -30px rgba(122,16,72,.45),inset 0 0 0 2px rgba(255,255,255,.6)"></div>
+    <div class="abs a grow" style="--d:.16s;--dur:.9s;left:212px;top:622px;width:656px;height:656px;border-radius:50%;border:2px solid rgba(201,164,92,.85)"></div>
+    <!-- glossy floor -->
+    <div class="abs" style="left:150px;right:150px;top:1150px;height:150px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.95),rgba(255,236,244,.5) 55%,rgba(255,255,255,0))"></div>
+    <div class="abs a markerC" style="--d:.15s;left:170px;right:170px;top:1222px;height:2px;background:linear-gradient(90deg,rgba(201,164,92,0),rgba(201,164,92,.85) 50%,rgba(201,164,92,0))"></div>
+
+    <div class="prod a pop clipR" data-src="../cutouts/tender.png" data-w="240" data-h="267" data-scale="1.9" data-cx="540" data-floor="1224" data-ro=".26" data-shd=".55" style="--d:.12s;--r0:-12deg;--sd:1.05s"></div>
+
+    <div class="row" style="top:280px"><div class="kick k-plum a pill" style="--d:.08s">عطور رجالي وحريمي</div></div>
+    <div class="row" style="top:368px"><div class="mask"><div class="L a rise liftL" style="--d:.14s;font-size:230px;color:var(--plum)">برفانات</div></div></div>
+
+    <div class="row" style="top:1284px"><div class="a pillC" style="--d:.34s">
+      <div style="display:flex;align-items:center;gap:22px;padding:20px 44px 16px;border-radius:999px;background:linear-gradient(180deg,#ffffff,#fff4f8);
+        box-shadow:inset 0 0 0 2px rgba(201,164,92,.75),0 18px 34px -16px rgba(92,15,58,.5)">
+        <span class="T" style="font-weight:800;font-size:54px;line-height:1.1;color:var(--plum)">برفان تندر</span>
+        <span style="width:3px;height:46px;background:linear-gradient(180deg,#e6cc8f,#b88d3e)"></span>
+        <span class="latin" style="font-size:50px;line-height:1.1;letter-spacing:.06em;color:var(--pink)">Tender</span>
+      </div></div></div>
+
+    <div class="sparkle a twinkle" style="--d:.7s;--s:60px;left:812px;top:770px;color:#fff;filter:drop-shadow(0 0 10px rgba(201,164,92,.9))"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:.85s;--s:38px;left:262px;top:980px;color:#e6cc8f;filter:drop-shadow(0 0 8px rgba(201,164,92,.8))"><svg><use href="#star"/></svg></div>
+  </div>
+</section>
+
+<!-- ================= S3 MEN'S 5.40 – 8.60 ================= -->
+<section class="scene" id="s3" data-t0="5.4" data-t1="8.6" style="--t0:5.4s;--t1:8.6s;--wipe:wIris;--cx:540px;--cy:1060px">
+  <div class="bg" style="background:
+    radial-gradient(60% 22% at 50% 20%,rgba(255,248,222,.85) 0%,rgba(255,248,222,0) 75%),
+    radial-gradient(110% 55% at 50% 26%,#f7e7bf 0%,#e8cb8c 30%,#cfa55c 56%,#a77836 80%,#6f4a1c 100%)"></div>
+  <div class="content">
+    <div class="row" style="top:256px"><div class="mask"><div class="L a rise" style="--d:.12s;font-size:140px;color:var(--ink)">برفانات</div></div></div>
+    <div class="row" style="top:372px"><div class="a slam liftL" style="--d:.2s"><div class="L" style="font-size:200px;line-height:1.2;color:var(--plum)">رجالي</div></div></div>
+
+    <!-- dark display niche with gold rim -->
+    <div class="abs a cardIn" style="--d:.0s;left:90px;width:900px;top:650px;height:1400px;border-radius:450px 450px 0 0/330px 330px 0 0;
+      background:radial-gradient(60% 34% at 50% 30%,#5a1a3d 0%,#3a0f28 40%,#22081a 75%,#14040d 100%);
+      box-shadow:inset 0 0 0 3px rgba(230,204,143,.85),inset 0 0 0 10px rgba(60,20,40,.6),inset 0 0 0 12px rgba(230,204,143,.35),0 30px 70px -20px rgba(60,30,0,.65)">
+      <div class="abs a beamIn" style="--d:.2s;left:180px;top:-40px;width:540px;height:760px;background:linear-gradient(180deg,rgba(255,236,190,.0),rgba(255,236,190,.20) 45%,rgba(255,236,190,0) 100%);clip-path:polygon(36% 0,64% 0,100% 100%,0 100%);filter:blur(16px)"></div>
+    </div>
+    <!-- pedestal -->
+    <div class="abs a cardIn" style="--d:.08s;left:150px;width:780px;top:1188px;height:760px;background:linear-gradient(180deg,#3b1229 0%,#26091a 30%,#170510 100%);box-shadow:inset 0 2px 0 rgba(230,204,143,.6)"></div>
+    <div class="abs a cardIn" style="--d:.08s;left:150px;width:780px;top:1150px;height:78px;border-radius:50%;background:radial-gradient(60% 70% at 50% 40%,#6a2a4b 0%,#45132f 55%,#2c0b1e 100%);box-shadow:inset 0 0 0 2px rgba(230,204,143,.75),0 6px 20px rgba(0,0,0,.4)"></div>
+
+    <div class="prod a pop tight" data-src="../cutouts/boom.png" data-w="170" data-h="330" data-scale="1.26" data-cx="270" data-floor="1196" data-ro=".22" style="--d:.04s;--r0:-14deg;--sd:.9s"></div>
+    <div class="prod a pop" data-src="../cutouts/cavalier.png" data-w="117" data-h="297" data-scale="1.4" data-cx="540" data-floor="1196" data-ro=".22" style="--d:.1s;--r0:12deg;--sd:1.05s"></div>
+    <div class="prod a pop" data-src="../cutouts/elite.png" data-w="178" data-h="190" data-scale="1.66" data-cx="810" data-floor="1200" data-ro=".22" style="--d:.16s;--r0:-12deg;--sd:1.2s"></div>
+
+    <div class="abs a fadeUp" style="--d:.36s;left:118px;width:300px;top:1236px;text-align:center"><span class="latin foil" style="font-size:52px">BOOM</span></div>
+    <div class="abs a fadeUp" style="--d:.42s;left:390px;width:300px;top:1236px;text-align:center"><span class="latin foil" style="font-size:52px;letter-spacing:.06em">Cavalier</span></div>
+    <div class="abs a fadeUp" style="--d:.48s;left:662px;width:300px;top:1236px;text-align:center"><span class="latin foil" style="font-size:52px">ELITE</span></div>
+    <div class="abs a markerC" style="--d:.55s;left:290px;right:290px;top:1330px;height:2px;background:linear-gradient(90deg,rgba(230,204,143,0),rgba(230,204,143,.8),rgba(230,204,143,0))"></div>
+    <div class="row" style="top:1350px"><div class="mask"><div class="T a rise" style="--d:.6s;font-weight:800;font-size:56px;color:var(--cream)">اختاري اللي يناسبك</div></div></div>
+
+    <div class="sparkle a twinkle" style="--d:.9s;--s:52px;left:925px;top:300px;color:#fff"><svg><use href="#star"/></svg></div>
+  </div>
+</section>
+
+<!-- ================= S4 MEN'S SET 8.60 – 11.80 ================= -->
+<section class="scene" id="s4" data-t0="8.6" data-t1="11.8" style="--t0:8.6s;--t1:11.8s;--wipe:wDiagL">
+  <div class="bg" style="background:
+    radial-gradient(70% 26% at 50% 44%,rgba(201,164,92,.26) 0%,rgba(201,164,92,0) 72%),
+    radial-gradient(50% 22% at 18% 14%,rgba(194,24,91,.28) 0%,rgba(194,24,91,0) 70%),
+    radial-gradient(110% 60% at 50% 42%,#4c1733 0%,#33102a 40%,#1d0815 72%,#0f040a 100%)"></div>
+  <div class="content">
+    <div class="row" style="top:246px"><div class="a slam lift" style="--d:.14s"><div class="L foil a sheen" style="--d:.7s;font-size:170px">الطقم الرجالي</div></div></div>
+    <div class="row" style="top:494px"><div class="mask"><div class="T a rise" style="--d:.3s;font-weight:800;font-size:62px;color:var(--cream)">بوم وإسنشيال وساعة</div></div></div>
+    <div class="abs a markerC" style="--d:.4s;left:340px;width:400px;top:598px;height:2px;background:linear-gradient(90deg,rgba(230,204,143,0),rgba(230,204,143,.95),rgba(230,204,143,0))"></div>
+    <div class="abs" style="left:531px;top:590px;width:18px;height:18px;rotate:45deg"><div class="a grow" style="--d:.5s;width:100%;height:100%;border:2px solid #e6cc8f;background:#2b0b1e"></div></div>
+
+    <!-- framed window for the men's set (top edge of the photo is black leather → seamless on the black card) -->
+    <div class="abs a cardIn" style="--d:.2s;left:66px;width:948px;top:640px;height:396px">
+      <div class="abs" style="inset:-14px;border:1px solid rgba(230,204,143,.45);border-radius:22px"></div>
+      <div class="abs" style="inset:0;border-radius:14px;background:#0b0807;box-shadow:inset 0 0 0 2px rgba(230,204,143,.85),0 40px 80px -30px rgba(0,0,0,.9),0 0 80px rgba(201,164,92,.16);overflow:hidden">
+        <div class="abs a kb" style="--d:.2s;--dur:3.4s;left:14px;top:28px;width:920px;height:312px;transform-origin:50% 40%">
+          <img src="../photos/menset-clean.png" alt="" style="width:920px;height:312px;display:block">
+        </div>
+        <div class="abs a sweep" style="--d:1.05s;--dur:1.3s;top:-100px;left:0;width:200px;height:600px;background:linear-gradient(90deg,rgba(255,240,210,0),rgba(255,240,210,.28),rgba(255,240,210,0))"></div>
+      </div>
+    </div>
+    <!-- reflection of the card -->
+    <div class="abs a fade" style="--d:.5s;left:80px;width:920px;top:1040px;height:150px;overflow:hidden;opacity:.5;-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0) 80%);mask-image:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0) 80%)">
+      <img src="../photos/menset-clean.png" alt="" style="width:920px;height:312px;display:block;transform:scaleY(-1) translateY(150px);filter:blur(2px)">
+    </div>
+
+    <div class="row" style="top:1180px"><div class="mask"><div class="T a rise" style="--d:.42s;font-weight:800;font-size:58px;color:var(--cream)">هدية شيك للزوج والأخ والابن،</div></div></div>
+    <div class="row" style="top:1268px"><div class="a slam lift" style="--d:.52s"><div class="L foil a sheen" style="--d:1.15s;font-size:124px">وأطقم كاملة.</div></div></div>
+
+    <div class="sparkle a twinkle" style="--d:.9s;--s:46px;left:150px;top:300px"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:1.1s;--s:36px;left:960px;top:1110px"><svg><use href="#star"/></svg></div>
+  </div>
+</section>
+
+<!-- ================= S5 SECRET GARDEN 11.80 – 14.60 ================= -->
+<section class="scene" id="s5" data-t0="11.8" data-t1="14.6" style="--t0:11.8s;--t1:14.6s;--wipe:wUp">
+  <div class="bg" style="background:
+    radial-gradient(40% 18% at 50% 55%,rgba(170,208,240,.30) 0%,rgba(170,208,240,0) 75%),
+    radial-gradient(60% 24% at 100% 0%,rgba(247,219,230,.9) 0%,rgba(247,219,230,0) 70%),
+    radial-gradient(60% 24% at 0% 100%,rgba(247,219,230,.8) 0%,rgba(247,219,230,0) 70%),
+    radial-gradient(110% 62% at 50% 48%,#ffffff 0%,#fbf6ef 34%,#f4ebdf 62%,#e6d3bb 86%,#cfb391 100%)"></div>
+  <div class="content">
+    <div class="row" style="top:280px"><div class="kick k-pink a pill" style="--d:.08s">منتجات البيت</div></div>
+    <div class="row" style="top:362px"><div class="mask"><div class="L a rise liftL" style="--d:.14s;font-size:165px;color:var(--plum)">سيكرت جاردن</div></div></div>
+    <div class="row" style="top:526px"><div class="mask"><div class="L a rise liftL" style="--d:.2s;font-size:135px;color:var(--pink)">نسيم الحدائق</div></div></div>
+    <div class="row" style="top:718px"><div class="a revealR" style="--d:.28s;position:relative">
+      <div class="abs" style="inset:0;border-radius:16px;rotate:-1.5deg;background:linear-gradient(180deg,#7a1048,#5c0f3a);box-shadow:inset 0 0 0 2px rgba(230,204,143,.7),0 14px 26px -12px rgba(92,15,58,.55)"></div>
+      <div class="T" style="position:relative;font-weight:900;font-size:62px;line-height:1;padding:24px 44px 20px;color:var(--cream)">عطري بيتك وهدومك</div>
+    </div></div>
+
+    <!-- low plinth (one group): opening · Secret Garden rising out of it · front body · gold rims -->
+    <div class="abs" style="left:170px;width:740px;top:960px;height:360px;border-radius:50%;background:radial-gradient(closest-side,rgba(170,208,240,.42),rgba(170,208,240,0))"></div>
+    <div class="abs" style="left:230px;width:620px;top:1366px;height:80px;border-radius:50%;background:radial-gradient(closest-side,rgba(110,75,40,.42),rgba(110,75,40,0))"></div>
+    <div class="abs a cardIn" style="--d:.05s;left:320px;top:700px;width:440px;height:760px">
+      <div class="abs" style="left:0;top:504px;width:440px;height:72px;border-radius:50%;background:radial-gradient(70% 80% at 50% 60%,#ffffff 0%,#eaf3fb 45%,#cfe0ee 75%,#b9a27e 100%);box-shadow:inset 0 6px 12px rgba(80,50,20,.25)"></div>
+      <div class="abs" style="left:-2px;top:502px;width:444px;height:76px;border-radius:50%;border:2px solid rgba(217,181,106,.8);clip-path:inset(-6px -6px 50% -6px)"></div>
+      <div class="abs a fade" style="--d:.3s;--dur:.9s;left:30px;top:150px;width:380px;height:400px;background:radial-gradient(50% 75% at 50% 100%,rgba(255,255,255,.95) 0%,rgba(225,238,250,.55) 40%,rgba(225,238,250,0) 75%);filter:blur(6px)"></div>
+      <div class="abs" style="left:0;top:0;width:440px;height:600px;clip-path:polygon(0 0,440px 0,440px 540px,438.1px 544.7px,432.5px 549.3px,423.3px 553.8px,410.5px 558.0px,394.5px 561.9px,375.6px 565.5px,353.9px 568.6px,330.0px 571.2px,304.2px 573.3px,276.9px 574.8px,248.7px 575.7px,220.0px 576.0px,191.3px 575.7px,163.1px 574.8px,135.8px 573.3px,110.0px 571.2px,86.1px 568.6px,64.4px 565.5px,45.5px 561.9px,29.5px 558.0px,16.7px 553.8px,7.5px 549.3px,1.9px 544.7px,0 540px)">
+        <div class="prod a riseUp sgtop" data-src="../cutouts/secret-garden-top.png" data-w="173" data-h="221" data-scale="1.7" data-cx="220" data-floor="570" data-noshd="1" data-norf="1" style="--d:.18s;--dur:.95s;--ry:420px;--sd:1.15s"></div>
+      </div>
+      <div class="abs" style="left:0;top:540px;width:440px;height:156px;border-radius:0 0 220px 220px/0 0 36px 36px;
+        background:linear-gradient(90deg,#d6c09c 0%,#efe3cd 15%,#fffbf4 40%,#f8eedf 60%,#e4d0ae 82%,#c4a679 100%);
+        -webkit-mask-image:radial-gradient(220px 36px at 50% 0,transparent 99%,#000 100%);mask-image:radial-gradient(220px 36px at 50% 0,transparent 99%,#000 100%)"></div>
+      <div class="abs" style="left:0;top:520px;width:440px;height:72px;border-radius:50%;border-bottom:2px solid rgba(201,164,92,.7);clip-path:inset(50% 0 -4px 0)"></div>
+      <div class="abs" style="left:-2px;top:502px;width:444px;height:76px;border-radius:50%;border:3px solid #d9b56a;clip-path:inset(50% -6px -6px -6px)"></div>
+      <div class="abs" style="left:-2px;top:622px;width:444px;height:76px;border-radius:50%;border:3px solid #c9a45c;clip-path:inset(50% -6px -6px -6px)"></div>
+    </div>
+
+    <div class="sparkle a twinkle" style="--d:.8s;--s:56px;left:812px;top:960px;color:#fff;filter:drop-shadow(0 0 10px rgba(120,170,230,.9))"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:.95s;--s:38px;left:255px;top:1060px;color:#e6cc8f;filter:drop-shadow(0 0 8px rgba(201,164,92,.8))"><svg><use href="#star"/></svg></div>
+  </div>
+</section>
+
+<!-- ================= S6 VERA + CLEOPATRA 14.60 – 17.80 ================= -->
+<section class="scene" id="s6" data-t0="14.6" data-t1="17.8" style="--t0:14.6s;--t1:17.8s;--wipe:wDiagR">
+  <div class="bg" style="background:
+    radial-gradient(60% 30% at 50% 36%,rgba(255,160,200,.45) 0%,rgba(255,160,200,0) 75%),
+    radial-gradient(110% 62% at 50% 40%,#c42466 0%,#9e1558 32%,#7a1048 56%,#560b35 80%,#33061f 100%)"></div>
+  <div class="content">
+    <div class="row" style="top:272px"><div class="kick k-gold a pill" style="--d:.08s">عناية بالبشرة والشعر</div></div>
+
+    <div class="abs a photoIn" style="--d:.12s;left:205px;top:398px;width:670px;height:672px">
+      <div class="abs" style="inset:0;border-radius:10px;background:linear-gradient(180deg,#fffdf9,#f8f1e6);box-shadow:0 46px 80px -30px rgba(30,0,15,.75),0 12px 24px -10px rgba(30,0,15,.45)"></div>
+      <div class="abs" style="left:26px;top:26px;width:618px;height:548px;overflow:hidden;border-radius:3px;background:#e9e1d6">
+        <img class="a kb" style="--d:.12s;--dur:3.2s;width:100%;height:100%;object-fit:cover;display:block;transform-origin:50% 55%;filter:saturate(1.06) contrast(1.04) brightness(1.03)" src="../photos/vera-cleopatra.jpg" alt="">
+        <div class="abs a sweep" style="--d:.95s;--dur:1.2s;top:-100px;left:0;width:180px;height:800px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.32),rgba(255,255,255,0))"></div>
+        <div class="abs" style="inset:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),inset 0 0 40px rgba(60,30,20,.10)"></div>
+      </div>
+      <div class="abs" dir="ltr" style="left:0;right:0;top:588px;text-align:center;font-family:'El Messiri';font-weight:600;font-size:52px;line-height:1.2;color:var(--plum);unicode-bidi:isolate">Azza <span style="color:#b8914a">Beauty</span></div>
+      <div class="abs" style="left:225px;top:-28px;width:220px;height:62px;background:rgba(240,170,200,.82);transform:rotate(-4deg);box-shadow:0 2px 6px rgba(92,15,58,.18)"></div>
+    </div>
+
+    <div class="abs" style="left:96px;width:470px;top:1086px;text-align:center">
+      <div class="mask"><div class="L a rise" style="--d:.42s;font-size:110px;line-height:1.2;color:var(--cream)">فيرا</div></div>
+      <div class="a fade" style="--d:.55s;margin-top:-10px"><span class="latin" style="font-size:44px;color:var(--gold-2)">VERA</span></div>
+      <div class="a fadeUp" style="--d:.64s;margin-top:10px"><span class="T" style="font-weight:800;font-size:48px;color:#fff3e6">جل الصبار فيرا</span></div>
+      <div class="a fadeUp" style="--d:.7s"><span class="T" style="font-weight:700;font-size:46px;color:var(--pink-soft)">لجميع أنواع البشرة</span></div>
+    </div>
+    <div class="abs a grow" style="--d:.5s;left:538px;top:1110px;width:3px;height:300px;background:linear-gradient(180deg,rgba(230,204,143,0),rgba(230,204,143,.9),rgba(230,204,143,0))"></div>
+    <div class="abs" style="left:514px;width:470px;top:1086px;text-align:center">
+      <div class="mask"><div class="L a rise" style="--d:.5s;font-size:110px;line-height:1.2;color:var(--cream)">كليوباترا</div></div>
+      <div class="a fade" style="--d:.62s;margin-top:-10px"><span class="latin" style="font-size:44px;color:var(--gold-2);letter-spacing:.07em">Cleopatra</span></div>
+      <div class="a fadeUp" style="--d:.72s;margin-top:10px"><span class="T" style="font-weight:800;font-size:48px;color:#fff3e6">كليوباترا للتطويل</span></div>
+    </div>
+
+    <div class="sparkle a twinkle" style="--d:.9s;--s:50px;left:910px;top:430px"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:1.05s;--s:34px;left:170px;top:980px"><svg><use href="#star"/></svg></div>
+  </div>
+</section>
+
+<!-- ================= S7 وكمان… 17.80 – 21.60 ================= -->
+<section class="scene" id="s7" data-t0="17.8" data-t1="21.6" style="--t0:17.8s;--t1:21.6s;--wipe:wDown">
+  <div class="bg" style="background:
+    radial-gradient(60% 24% at 50% 16%,rgba(255,250,232,.9) 0%,rgba(255,250,232,0) 75%),
+    radial-gradient(110% 62% at 50% 34%,#f8e9c4 0%,#ecd296 30%,#d6b06a 56%,#ad813c 80%,#73501f 100%)"></div>
+  <div class="content">
+    <div class="abs a fade" style="--d:.2s;--dur:.8s;inset:40px;border:1.5px solid rgba(122,80,30,.5);border-radius:6px;box-shadow:inset 0 0 0 10px rgba(0,0,0,0),inset 0 0 0 11.5px rgba(122,80,30,.25)"></div>
+    <div class="row" style="top:236px"><div class="a slam liftL" style="--d:.1s"><div class="L" style="font-size:190px;line-height:1.2;color:var(--plum)">وكمان<span style="font-family:'Tajawal';font-weight:900;font-size:150px">…</span></div></div></div>
+
+    <div class="abs" style="left:80px;right:80px;top:516px;display:flex;flex-direction:column;align-items:center">
+      <div style="text-align:center">
+        <div class="a fromR" style="--d:.1s"><div class="L" style="font-size:96px;line-height:1.12;color:var(--plum)">اسبريهات حريمي ورجالي</div></div>
+        <div class="mask"><div class="T a rise" style="--d:.22s;font-weight:800;font-size:54px;color:var(--ink)">اسبري معطر للجسم</div></div>
+      </div>
+      <div class="a markerC" style="--d:.24s;position:relative;width:600px;height:4px;margin:38px 0 40px;border-radius:2px;background:linear-gradient(90deg,rgba(122,80,30,0),#8f6427 22%,#f8e7b4 50%,#8f6427 78%,rgba(122,80,30,0))"><i style="position:absolute;left:50%;top:-8px;width:16px;height:16px;margin-left:-8px;transform:rotate(45deg);background:var(--plum);box-shadow:0 0 0 2px #f1dca2"></i></div>
+      <div style="text-align:center">
+        <div class="a fromL" style="--d:.24s"><div class="L" style="font-size:120px;line-height:1.12;color:var(--pink)">مسكا</div></div>
+        <div class="mask"><div class="T a rise" style="--d:.36s;font-weight:800;font-size:54px;color:var(--ink)">جل معطر للجسم</div></div>
+      </div>
+      <div class="a markerC" style="--d:.4s;position:relative;width:600px;height:4px;margin:38px 0 40px;border-radius:2px;background:linear-gradient(90deg,rgba(122,80,30,0),#8f6427 22%,#f8e7b4 50%,#8f6427 78%,rgba(122,80,30,0))"><i style="position:absolute;left:50%;top:-8px;width:16px;height:16px;margin-left:-8px;transform:rotate(45deg);background:var(--plum);box-shadow:0 0 0 2px #f1dca2"></i></div>
+      <div class="a fromR" style="--d:.4s"><div class="L" style="font-size:80px;line-height:1.12;color:var(--plum)">مجموعات شامبو وشاور وماسك</div></div>
+      <div class="a markerC" style="--d:.52s;position:relative;width:600px;height:4px;margin:38px 0 40px;border-radius:2px;background:linear-gradient(90deg,rgba(122,80,30,0),#8f6427 22%,#f8e7b4 50%,#8f6427 78%,rgba(122,80,30,0))"><i style="position:absolute;left:50%;top:-8px;width:16px;height:16px;margin-left:-8px;transform:rotate(45deg);background:var(--plum);box-shadow:0 0 0 2px #f1dca2"></i></div>
+      <div class="a fromL" style="--d:.52s"><div class="L foil a sheen" style="--d:1.5s;font-size:128px;line-height:1.15;background-image:var(--band),linear-gradient(180deg,#a0164f 0%,#c2185b 45%,#7a1048 100%)">ماي شيف</div></div>
+    </div>
+
+    <div class="sparkle a twinkle" style="--d:.5s;--s:56px;left:850px;top:320px"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:1.3s;--s:40px;left:150px;top:1440px"><svg><use href="#star"/></svg></div>
+  </div>
+</section>
+
+<!-- ================= S8 END CARD 21.60 – 27.00 ================= -->
+<section class="scene" id="s8" data-t0="21.6" data-t1="99" style="--t0:21.6s;--t1:99s;--wipe:wIris;--cx:540px;--cy:960px">
+  <div class="bg" style="background:
+    radial-gradient(50% 18% at 50% 34%,rgba(255,220,170,.22) 0%,rgba(255,220,170,0) 75%),
+    radial-gradient(60% 20% at 50% 60%,rgba(255,90,150,.30) 0%,rgba(255,90,150,0) 72%),
+    radial-gradient(110% 62% at 50% 40%,#8c1554 0%,#6c0f43 30%,#4c0a30 58%,#2c051c 82%,#16020d 100%)"></div>
+  <div class="content">
+    <div class="abs a beamIn" style="--d:.2s;left:190px;top:330px;width:700px;height:640px;background:linear-gradient(180deg,rgba(255,236,190,0),rgba(255,236,190,.16) 60%,rgba(255,236,190,0) 100%);clip-path:polygon(34% 0,66% 0,100% 100%,0 100%);filter:blur(16px)"></div>
+
+    <div class="abs a fade" style="--d:.2s;--dur:.8s;inset:40px;border:1.5px solid rgba(201,164,92,.55);border-radius:6px;box-shadow:inset 0 0 0 10px rgba(0,0,0,0),inset 0 0 0 11.5px rgba(201,164,92,.25)"></div>
+    <div class="row" style="top:262px"><div class="a slam lift" style="--d:.1s"><div dir="ltr" style="font-family:'El Messiri';font-weight:700;font-size:122px;line-height:1.2;color:var(--cream);unicode-bidi:isolate;white-space:nowrap">Azza <span class="foil a sheen" style="--d:.8s;padding:0 .04em">Beauty</span></div></div></div>
+    <div class="row" style="top:410px"><div class="mask"><div class="T a rise" style="--d:.16s;font-weight:700;font-size:48px;color:rgba(251,246,239,.9)">عزة خليل · فريق ماي واي مصر</div></div></div>
+
+    <!-- lit shelf -->
+    <div class="abs" style="left:100px;right:100px;top:740px;height:130px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,220,170,.22),rgba(255,120,170,.06) 60%,rgba(0,0,0,0))"></div>
+    <div class="abs a markerC" style="--d:.2s;left:96px;right:96px;top:800px;height:3px;background:linear-gradient(90deg,rgba(230,204,143,0),#f3dca0 30%,#fff3cf 50%,#f3dca0 70%,rgba(230,204,143,0))"></div>
+    <div class="prod a pop" data-src="../cutouts/boom-gel.png" data-w="163" data-h="305" data-scale=".8" data-cx="178" data-floor="801" data-ro=".2" style="--d:.2s;--r0:-14deg;--sd:.95s"></div>
+    <div class="prod a pop" data-src="../cutouts/cavalier.png" data-w="117" data-h="297" data-scale=".86" data-cx="292" data-floor="801" data-ro=".2" style="--d:.26s;--r0:12deg;--sd:1.05s"></div>
+    <div class="prod a pop clipR" data-src="../cutouts/tender.png" data-w="240" data-h="267" data-scale=".95" data-cx="448" data-floor="801" data-ro=".2" style="--d:.12s;--r0:-10deg;--sd:.85s;z-index:2"></div>
+    <div class="prod a pop" data-src="../cutouts/secret-garden.png" data-w="175" data-h="415" data-scale=".7" data-cx="622" data-floor="801" data-ro=".2" style="--d:.16s;--r0:10deg;--sd:1.0s;z-index:1"></div>
+    <div class="prod a pop" data-src="../cutouts/elite.png" data-w="178" data-h="190" data-scale="1.0" data-cx="772" data-floor="803" data-ro=".2" style="--d:.3s;--r0:-12deg;--sd:1.15s"></div>
+    <div class="prod a pop tight" data-src="../cutouts/boom.png" data-w="170" data-h="330" data-scale=".8" data-cx="912" data-floor="801" data-ro=".2" style="--d:.34s;--r0:14deg;--sd:1.25s"></div>
+
+    <div class="row" style="top:858px"><div class="a slam" style="--d:.2s"><div class="L" style="font-size:140px;line-height:1.2;color:#fff;filter:drop-shadow(0 10px 24px rgba(20,0,10,.5))">اسألي عن السعر</div></div></div>
+
+    <div class="row" style="top:1052px"><div class="a pillC" style="--d:.34s;position:relative">
+      <div class="abs a glow" style="--d:1.2s;left:10px;right:10px;top:6px;bottom:6px;border-radius:999px;background:#25d366;filter:blur(30px)"></div>
+      <div style="position:relative;display:flex;align-items:center;gap:22px;padding:10px 52px 6px 44px;border-radius:999px;overflow:hidden;
+        background:linear-gradient(180deg,#3ee07f 0%,#22c063 50%,#13934f 100%);box-shadow:0 22px 40px -16px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 0 rgba(0,60,25,.25)">
+        <svg style="width:80px;height:80px;color:#fff;flex:none"><use href="#wa"/></svg>
+        <span class="L" style="font-size:96px;line-height:1.2;color:#fff;text-shadow:0 3px 10px rgba(0,60,25,.35)">على واتساب</span>
+        <i class="abs a pillSheen" style="--d:.9s;--dur:.85s;inset:0;background-image:linear-gradient(105deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.55) 50%,rgba(255,255,255,0) 60%);background-size:320% 100%;background-repeat:no-repeat"></i>
+      </div>
+    </div></div>
+
+    <div class="row" style="top:1200px"><div class="T a fadeUp" style="--d:.5s;font-weight:700;font-size:48px;color:var(--gold-2)">شوفي الكتالوج على واتساب</div></div>
+    <div class="row" style="top:1268px"><div class="T a fadeUp" style="--d:.6s;font-weight:700;font-size:44px;color:#f3b6cf;display:flex;align-items:center;gap:14px">
+      <svg style="width:30px;height:30px;color:#e2457f"><use href="#heart"/></svg>عائلة واحدة<svg style="width:30px;height:30px;color:#e2457f"><use href="#heart"/></svg></div></div>
+    <div class="row" style="top:1336px"><div class="T a fade" style="--d:.7s;font-weight:700;font-size:44px;line-height:1.3;text-align:center;color:rgba(244,235,223,.62)">حساب مستقل لعضوة في ماي واي مصر،<br>وليس الحساب الرسمي للشركة</div></div>
+
+    <div class="sparkle a twinkle" style="--d:.9s;--s:44px;left:150px;top:300px"><svg><use href="#star"/></svg></div>
+    <div class="sparkle a twinkle" style="--d:1.1s;--s:50px;left:960px;top:470px"><svg><use href="#star"/></svg></div>
+  </div>
+</section>
+
+<!-- gold light edges riding each wipe -->
+<div class="edge v dR"  style="--t:2.6s"></div>
+<div class="edge ring"  style="--t:5.4s;--cx:540px;--cy:1060px"></div>
+<div class="edge v dL"  style="--t:8.6s"></div>
+<div class="edge h up"  style="--t:11.8s"></div>
+<div class="edge v dR"  style="--t:14.6s"></div>
+<div class="edge h dn"  style="--t:17.8s"></div>
+<div class="edge ring"  style="--t:21.6s;--cx:540px;--cy:960px"></div>
+
+<canvas id="dust" width="1080" height="1920"></canvas>
+<div id="grain"></div>
+<div id="vig"></div>
+<div id="guides"><i></i></div>
+
+<script>
+window.DURATION = 27.0;
+
+/* ---- product cutouts: contact shadow + floor reflection + body + glass sheen ---- */
+document.querySelectorAll('.prod[data-src]').forEach(el => {
+  const d = el.dataset, s = +d.scale, w = Math.round(+d.w * s), h = Math.round(+d.h * s);
+  const cx = +d.cx, floor = +d.floor;
+  Object.assign(el.style, { left: (cx - w / 2) + 'px', top: (floor - h) + 'px', width: w + 'px', height: h + 'px' });
+  if (d.ro) el.style.setProperty('--ro', d.ro);
+  let html = '';
+  if (d.halo) html += `<div class="halo" style="left:${-w*.35}px;width:${w*1.7}px;top:${-h*.2}px;height:${h*1.3}px"></div>`;
+  if (!d.noshd) { const sw = w * (+d.shd || 1.05); html += `<div class="shd" style="left:${(w - sw)/2}px;width:${sw}px;top:${h - 20}px;height:42px"></div>`; }
+  if (!d.norf) html += `<div class="rf" style="top:${h - 2}px;height:${h}px"><img src="${d.src}" alt=""></div>`;
+  html += `<div class="bd"><img class="main" src="${d.src}" alt=""><img class="sh a glass" style="--d:${el.style.getPropertyValue('--sd') || '1s'}" src="${d.src}" alt=""></div>`;
+  el.innerHTML = html;
+});
+
+/* ---- seeded PRNG (load time only) ---- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R = mulberry32(20261022);
+
+/* ---- film grain tile ---- */
+(() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d'), im = g.createImageData(256, 256);
+  for (let i = 0; i < 256 * 256; i++) {
+    const v = 128 + ((R() + R() + R()) / 3 - .5) * 190;
+    im.data[i*4] = im.data[i*4+1] = im.data[i*4+2] = v; im.data[i*4+3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+  document.getElementById('grain').style.backgroundImage = `url(${c.toDataURL()})`;
+})();
+
+/* ---- gold dust ---- */
+const W = 1080, H = 1920;
+function sprite(size, stops){
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+  stops.forEach(([o,col]) => gr.addColorStop(o,col)); g.fillStyle = gr; g.fillRect(0,0,size,size); return c;
+}
+const speck = sprite(64, [[0,'rgba(255,248,226,1)'],[.2,'rgba(246,220,155,.9)'],[.5,'rgba(214,176,98,.28)'],[1,'rgba(201,164,92,0)']]);
+const bokeh = sprite(256, [[0,'rgba(255,226,170,.5)'],[.6,'rgba(235,190,120,.3)'],[.85,'rgba(235,190,120,.12)'],[1,'rgba(235,190,120,0)']]);
+const specks = [], boks = [];
+for (let i = 0; i < 120; i++) { const z = R(); specks.push({ x: R()*W, y: R()*H, z, r: 2 + z*7, vy: 12 + z*40, sway: 6 + R()*20, w: .3 + R()*.8, ph: R()*6.283, tw: 1 + R()*3, tph: R()*6.283 }); }
+for (let i = 0; i < 8; i++) boks.push({ x: R()*W, y: R()*H, r: 50 + R()*80, vy: 16 + R()*24, sway: 20 + R()*40, w: .15 + R()*.3, ph: R()*6.283, a: .05 + R()*.06 });
+const ctx = document.getElementById('dust').getContext('2d');
+const wrap = (v, m) => ((v % m) + m) % m;
+window.seek = t => {
+  ctx.clearRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of specks) {
+    const y = wrap(p.y - p.vy * t, H + 100) - 50, x = p.x + Math.sin(t * p.w + p.ph) * p.sway;
+    const tw = .5 + .5 * Math.sin(t * p.tw + p.tph);
+    ctx.globalAlpha = Math.min(1, (.15 + .6 * tw) * (.35 + .65 * p.z));
+    ctx.drawImage(speck, x - p.r, y - p.r, p.r * 2, p.r * 2);
+  }
+  for (const p of boks) {
+    const y = wrap(p.y - p.vy * t, H + 300) - 150, x = p.x + Math.sin(t * p.w + p.ph) * p.sway;
+    ctx.globalAlpha = p.a; ctx.drawImage(bokeh, x - p.r, y - p.r, p.r * 2, p.r * 2);
+  }
+};
+window.seek(0);
+if (/guides=1/.test(location.search)) document.getElementById('guides').style.display = 'block';
+
+window.READY = Promise.all([
+  document.fonts.load('400 100px "Lalezar"'), document.fonts.load('700 50px "Tajawal"'), document.fonts.load('800 50px "Tajawal"'),
+  document.fonts.load('900 50px "Tajawal"'), document.fonts.load('700 100px "El Messiri"'), document.fonts.load('600 100px "El Messiri"')
+]).then(() => document.fonts.ready);
+</script>
+</body>
+</html>
